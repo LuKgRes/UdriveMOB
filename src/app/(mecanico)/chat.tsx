@@ -1,28 +1,54 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ConversaResumo, listarConversas } from '@/api/dados';
+import { ListaApi } from '@/components/ListaApi';
 import { ScreenBody } from '@/components/ScreenBody';
 import { colors } from '@/constants/colors';
-import { conversas } from '@/data/mock';
+import { useCarregar } from '@/hooks/useCarregar';
+import { formatarData, formatarHora } from '@/utils/format';
+
+function horaDaUltima(c: ConversaResumo): string {
+  if (!c.ultima) return '';
+  const d = new Date(c.ultima.criadoEm);
+  const hoje = new Date();
+  const mesmoDia = d.toDateString() === hoje.toDateString();
+  return mesmoDia ? formatarHora(c.ultima.criadoEm) : formatarData(c.ultima.criadoEm);
+}
 
 export default function ListaConversas() {
   const router = useRouter();
+  const { dados, carregando, erro, atualizando, atualizar } = useCarregar(listarConversas);
+
+  // Conversas com mensagem mais recente primeiro; sem mensagens ficam no fim
+  const ordenadas = dados
+    ? [...dados].sort((a, b) => (b.ultima?.criadoEm ?? '').localeCompare(a.ultima?.criadoEm ?? ''))
+    : null;
 
   return (
     <ScreenBody title="Conversas com clientes">
-      <FlatList
-        data={conversas}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <Pressable style={styles.card} onPress={() => router.push(`/conversa/${item.id}`)}>
+      <ListaApi<ConversaResumo>
+        dados={ordenadas}
+        carregando={carregando}
+        erro={erro}
+        atualizando={atualizando}
+        onAtualizar={atualizar}
+        textoVazio="Nenhuma conversa ainda. Elas aparecem quando um cliente abre o chat."
+        keyExtractor={(item) => String(item.id)}
+        renderItem={(item) => (
+          <Pressable
+            style={styles.card}
+            onPress={() => router.push({ pathname: '/conversa/[id]', params: { id: String(item.id), nome: item.cliente } })}
+          >
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.cliente.charAt(0)}</Text>
+              <Text style={styles.avatarTexto}>{item.cliente.charAt(0).toUpperCase()}</Text>
             </View>
             <View style={styles.info}>
-              <Text style={styles.name}>{item.cliente}</Text>
-              <Text style={styles.last} numberOfLines={1}>{item.ultima}</Text>
+              <Text style={styles.nome}>{item.cliente}</Text>
+              <Text style={styles.ultima} numberOfLines={1}>
+                {item.ultima?.texto ?? 'Sem mensagens'}
+              </Text>
             </View>
-            <Text style={styles.hour}>{item.hora}</Text>
+            <Text style={styles.hora}>{horaDaUltima(item)}</Text>
           </Pressable>
         )}
       />
@@ -48,9 +74,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 16, fontWeight: '800', color: '#000' },
+  avatarTexto: { fontSize: 16, fontWeight: '800', color: '#000' },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '700', color: colors.white },
-  last: { fontSize: 13, color: colors.muted, marginTop: 2 },
-  hour: { fontSize: 12, color: colors.muted },
+  nome: { fontSize: 15, fontWeight: '700', color: colors.white },
+  ultima: { fontSize: 13, color: colors.muted, marginTop: 2 },
+  hora: { fontSize: 12, color: colors.muted },
 });

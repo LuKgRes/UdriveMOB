@@ -1,18 +1,18 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { ChatView } from '@/components/ChatView';
-import { conversas, mensagensIniciais } from '@/data/mock';
+import { Redirect, Stack, useLocalSearchParams } from 'expo-router';
+import { ChatConversa } from '@/components/ChatConversa';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Conversa() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const conversa = conversas.find((c) => c.id === id);
+  const { usuario } = useAuth();
+  const { id, nome } = useLocalSearchParams<{ id: string; nome?: string }>();
+  const conversaId = Number(id);
+
+  if (!usuario) return <Redirect href="/" />;
 
   return (
     <>
-      <Stack.Screen options={{ title: conversa?.cliente ?? 'Conversa' }} />
-      {/* Aqui "me" é o mecânico, então invertemos as mensagens de exemplo */}
-      <ChatView
-        initial={mensagensIniciais.map((m) => ({ ...m, from: m.from === 'me' ? 'other' : 'me' }))}
-      />
+      <Stack.Screen options={{ title: nome ?? 'Conversa' }} />
+      {Number.isInteger(conversaId) && conversaId > 0 ? <ChatConversa conversaId={conversaId} /> : null}
     </>
   );
 }

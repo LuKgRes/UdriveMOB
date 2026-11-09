@@ -1,8 +1,14 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { tabScreenOptions } from '@/components/tabOptions';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ClienteLayout() {
+  const { usuario } = useAuth();
+
+  if (!usuario) return <Redirect href="/" />;
+  if (usuario.perfil !== 'cliente') return <Redirect href="/(mecanico)/pendentes" />;
+
   return (
     <Tabs screenOptions={tabScreenOptions}>
       <Tabs.Screen
