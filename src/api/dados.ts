@@ -10,7 +10,7 @@ export type Ordem = {
   valorCentavos: number | null;
   criadoEm: string;
 };
-export type Pendente = { id: number; cliente: string; veiculo: string; servico: string; dataHora: string };
+export type Pendente = { id: number; cliente: string; veiculo: string; servico: string; dataHora: string; estado: string };
 export type ConversaResumo = { id: number; cliente: string; ultima: { texto: string; criadoEm: string } | null };
 export type MensagemApi = { id: number; texto: string; criadoEm: string; minha: boolean };
 
@@ -22,6 +22,9 @@ export const criarAgendamento = (dados: { servico: string; veiculo: string; data
 export const listarOrdens = () => api<Ordem[]>('/ordens');
 
 export const listarPendentes = () => api<Pendente[]>('/pendentes');
+
+export const concluirAgendamento = (id: number) =>
+  api<{ id: number; estado: string }>(`/agendamentos/${id}/concluir`, { method: 'PATCH' });
 
 export const listarConversas = () => api<ConversaResumo[]>('/conversas');
 

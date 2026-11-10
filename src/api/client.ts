@@ -27,7 +27,9 @@ export function setAoExpirarSessao(fn: (() => void) | null) {
 type Opcoes = { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown };
 
 export async function api<T>(caminho: string, { method = 'GET', body }: Opcoes = {}): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const headers: Record<string, string> = {};
+  // Só declara JSON quando há corpo: a API recusa "JSON" com corpo vazio (ex.: PATCH sem dados)
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (tokenAtual) headers.Authorization = `Bearer ${tokenAtual}`;
 
   const controller = new AbortController();

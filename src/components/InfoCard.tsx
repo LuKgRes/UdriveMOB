@@ -1,12 +1,15 @@
+import { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, statusColors } from '@/constants/colors';
 
 type Props = {
   rows: { label: string; value: string }[];
   badge?: string;
+  /** Conteúdo extra no final do cartão (ex.: botões de ação) */
+  children?: ReactNode;
 };
 
-export function InfoCard({ rows, badge }: Props) {
+export function InfoCard({ rows, badge, children }: Props) {
   return (
     <View style={styles.card}>
       {badge && (
@@ -20,6 +23,7 @@ export function InfoCard({ rows, badge }: Props) {
           <Text style={styles.value}>{row.value}</Text>
         </View>
       ))}
+      {children}
     </View>
   );
 }
